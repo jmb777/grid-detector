@@ -27,7 +27,7 @@ export class CvService {
     cv.Canny(src, src, 50, 200, 3);
     cv.dilate(src, src, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
     
-    dst = cv.imread('canvasInput');
+    // dst = cv.imread('canvasInput');
     cv.HoughLinesP(src, lines, 2, Math.PI / 90, 200, 50, 1);
     
     console.log(`HoughlinesP rows ${lines.rows}`);
@@ -53,7 +53,10 @@ export class CvService {
       if (slope < vert) {
         let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
           new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
-      
+          const p1 = new cv.Point(l.p1.col,l.p1.row);
+          const p2 = new cv.Point(l.p2.col,l.p2.row);
+ 
+          cv.line(dst, p1, p2, [0, 255, 0, 255], 1);
         vertLines.push(l);
 
       }
@@ -61,48 +64,54 @@ export class CvService {
        
         let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
           new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
+          const p1 = new cv.Point(l.p1.col,l.p1.row);
+          const p2 = new cv.Point(l.p2.col,l.p2.row);
+ 
+          cv.line(dst, p1, p2, [0, 0, 255, 255], 1);
         horizLines.push(l);
 
       }
 
 
 
-
+      cv.imshow('canvasTest1', dst);
 
     }
-    const sensitivity = 8;
+
+    // ********************************************************************
+    // const sensitivity = 8;
 
 
-    vertLines.forEach(vL => {
-      this.findCornerAt(vertLines, horizLines, vL.p1, 8);
-      this.findCornerAt(vertLines, horizLines, vL.p2, 8);
-    });
+    // vertLines.forEach(vL => {
+    //   this.findCornerAt(vertLines, horizLines, vL.p1, 8);
+    //   this.findCornerAt(vertLines, horizLines, vL.p2, 8);
+    // });
 
   
-    cv.imshow('canvasTest1', src);
-    // this.detectCorners(src, dst, 40, 2, 10);
-    // this.showContours(src, dst);
-    let groupedCoordsList: Coord[][] = this.groupHCoords(dst.rows, horizLines, 'h');
-    horizLines = [];
-    groupedCoordsList.forEach(g => {
+    // cv.imshow('canvasTest1', src);
+    // // this.detectCorners(src, dst, 40, 2, 10);
+    // // this.showContours(src, dst);
+    // let groupedCoordsList: Coord[][] = this.groupHCoords(dst.rows, horizLines, 'h');
+    // horizLines = [];
+    // groupedCoordsList.forEach(g => {
       
-      const line = this.drawLine(g, dst, 'h');
-      if (line) { horizLines.push(line) };
-      // horizLines.push(this.drawLine(g, dst, 'h'));
+    //   const line = this.drawLine(g, dst, 'h');
+    //   if (line) { horizLines.push(line) };
+    //   // horizLines.push(this.drawLine(g, dst, 'h'));
 
-    });
-    groupedCoordsList = this.groupHCoords(dst.cols, vertLines, 'v');
-    vertLines = [];
-    groupedCoordsList.forEach(g => {
-      const line = this.drawLine(g, dst, 'v');
-        if (line) { vertLines.push(line) };
-      // vertLines.push(this.drawLine(g, dst, 'v'));
-    });
-    this.showCorners(dst, horizLines, vertLines, 20);
-    cv.imshow('canvasTest', dst);
-    src.delete(); dst.delete(); lines.delete();
+    // });
+    // groupedCoordsList = this.groupHCoords(dst.cols, vertLines, 'v');
+    // vertLines = [];
+    // groupedCoordsList.forEach(g => {
+    //   const line = this.drawLine(g, dst, 'v');
+    //     if (line) { vertLines.push(line) };
+    //   // vertLines.push(this.drawLine(g, dst, 'v'));
+    // });
+    // this.showCorners(dst, horizLines, vertLines, 20);
+    // cv.imshow('canvasTest', dst);
+    // src.delete(); dst.delete(); lines.delete();
 
-    console.log(Date.now() - startTime)
+    // console.log(Date.now() - startTime)
 
   }
 
@@ -197,8 +206,13 @@ export class CvService {
       if (slope < vert) {
         let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
           new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
-
+        //  const p1 = new cv.Point(m * yMin + c, yMin);
+        //   p2 = new cv.Point(yMax * m + c, yMax);
+        //   c1 = new Coord(yMin, m * yMin + c);
+        //   c2 = new Coord(yMax, m * yMax + c);
+        //   cv.line(dst, p1, p2, [0, 255, 0, 255], 1);
         vertLines.push(l);
+        
 
       }
       if (slope > horiz) {
@@ -324,6 +338,8 @@ export class CvService {
       img.src = imageUrl;
     });
   }
+
+  
 
   printError(err: any) {
     if (typeof err === 'undefined') {

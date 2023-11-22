@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angula
 import { CommonModule } from '@angular/common';
 import { Event, RouterOutlet } from '@angular/router';
 import { CvService } from './services/cv.service';
-import { filter, tap } from 'rxjs';
+import { filter, fromEvent, switchMap, tap } from 'rxjs';
 import { OpenCVLoadResult } from '../assets/cv.models';
 import { Line } from './Classes/line';
 import { Coord } from './Classes/coord.class';
@@ -23,6 +23,8 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 
 
+  showGrid = false;
+  ocrResult: any;
   title = 'grid-detector';
 
   imageUrl = 'assets/images/IMG_3351.png';
@@ -39,6 +41,58 @@ export class AppComponent implements AfterViewInit, OnInit {
   ngAfterViewInit(): void {
     this.loadImageToHTMLCanvas(this.imageUrl, this.canvasInput.nativeElement)
 
+  }
+
+  readDataUrl(event: any) {
+    let canvas1 = document.getElementById('canvasTest') as HTMLCanvasElement;
+
+    let ctx1 = canvas1.getContext('2d');
+    if (ctx1) ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+    canvas1 = document.getElementById('canvasTest1') as HTMLCanvasElement;
+
+    ctx1 = canvas1.getContext('2d');
+    if (ctx1) ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
+
+    if (event.target.files.length) {
+      this.showGrid = false;
+      const reader = new FileReader();
+      const load$ = fromEvent(reader, 'load');
+      let cv1 = cv;
+
+      load$
+        .pipe(
+
+
+          tap(() => {let txt = `${reader.result}`;
+          let img = new Image();
+          img.src = txt;
+          console.log(img.width);
+
+          return this.loadImageToHTMLCanvas(txt, this.canvasInput.nativeElement);
+
+
+          })
+
+        )
+        .subscribe({
+          next: () => {
+            
+          },
+          error: err => {
+            console.log('Error loading image', err);
+          },
+          complete: () => { }
+        }
+
+
+        );
+
+      this.ocrResult = 'Loading file';
+      reader.readAsDataURL(event.target.files[0]);
+
+
+
+    }
   }
 
   loadImageToHTMLCanvas(imageUrl: string, canvas: HTMLCanvasElement) {
@@ -82,7 +136,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
     this.cvService.prepareImage();
     this.cvService.findHoughLines();
-  
+
     // dst = cv.imread('canvasInput');
     // cv.HoughLinesP(src, lines, 2, Math.PI / 90, 200, 50, 1);
 
@@ -283,8 +337,8 @@ export class AppComponent implements AfterViewInit, OnInit {
     let yMax = g[0].row;
     let p1: any;
     let p2: any;
-    let c1 = new Coord(0,0);
-    let c2 = new  Coord(0,0);
+    let c1 = new Coord(0, 0);
+    let c2 = new Coord(0, 0);
     if (dir == 'h') {
       g.forEach(c => {
         sX = sX + c.col;
