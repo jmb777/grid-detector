@@ -17,103 +17,120 @@ export class CvService {
 
     let src = cv.imread('canvasInput');
     let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
-    let lines = new cv.Mat();
-    let color = new cv.Scalar(255, 0, 0, 255);
-    let color1 = new cv.Scalar(255, 255, 0, 255);
+    
+    // let color = new cv.Scalar(255, 0, 0, 255);
+    // let color1 = new cv.Scalar(255, 255, 0, 255);
+    
+    // let startTime = Date.now();
+
+    this.prepareImageA(src, dst);
+    
+    cv.imshow('canvasTest', src);
+    // dst = cv.imread('canvasInput');
+    for (let index = 0; index < 5; index++) {
+      
+      this.getHoughLinesP(src, dst);
+    }
+    
+
+
+
+
+    cv.imshow('canvasTest1', dst);
+
+  }
+  prepareImageA(src: any, dst: any) {
     let anchor = new cv.Point(-1, -1);
     let M = cv.Mat.ones(3, 3, cv.CV_8U);
-    let startTime = Date.now();
     cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
     cv.Canny(src, src, 50, 200, 3);
     cv.dilate(src, src, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-    
-    // dst = cv.imread('canvasInput');
-    cv.HoughLinesP(src, lines, 2, Math.PI / 90, 200, 50, 1);
-    
-    console.log(`HoughlinesP rows ${lines.rows}`);
-  
-    let horizLines: Line[] = [];
-    let vertLines: Line[] = [];
-    for (let i = 0; i < lines.rows; ++i) {
-   
+  }
 
-      let dx = lines.data32S[i * 4] - lines.data32S[i * 4 + 2];
-      let dy = lines.data32S[i * 4 + 1] - lines.data32S[i * 4 + 3];
-      let slope = Math.abs(dx / dy);
-      let vert = Math.abs(Math.tan((Math.PI / 180) * 10));
-      let horiz = Math.abs(Math.tan((Math.PI / 180) * 80));
-      let startPoint = new cv.Point(lines.data32S[i * 4], lines.data32S[i * 4 + 1]);
-      let endPoint = new cv.Point(lines.data32S[i * 4 + 2], lines.data32S[i * 4 + 3]);
-      let row1 = lines.data32S[i * 4 + 1];
-      let row2 = lines.data32S[i * 4 + 3];
-      let col1 = lines.data32S[i * 4];
-      let col2 = lines.data32S[i * 4 + 2];
+  // ********************************************************************
+  // const sensitivity = 8;
 
-    
-      if (slope < vert) {
-        let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
-          new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
-          const p1 = new cv.Point(l.p1.col,l.p1.row);
-          const p2 = new cv.Point(l.p2.col,l.p2.row);
- 
-          cv.line(dst, p1, p2, [0, 255, 0, 255], 1);
-        vertLines.push(l);
 
-      }
-      if (slope > horiz) {
-       
-        let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
-          new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
-          const p1 = new cv.Point(l.p1.col,l.p1.row);
-          const p2 = new cv.Point(l.p2.col,l.p2.row);
- 
-          cv.line(dst, p1, p2, [0, 0, 255, 255], 1);
-        horizLines.push(l);
+  // vertLines.forEach(vL => {
+  //   this.findCornerAt(vertLines, horizLines, vL.p1, 8);
+  //   this.findCornerAt(vertLines, horizLines, vL.p2, 8);
+  // });
 
-      }
+
+  // cv.imshow('canvasTest1', src);
+  // // this.detectCorners(src, dst, 40, 2, 10);
+  // // this.showContours(src, dst);
+  // let groupedCoordsList: Coord[][] = this.groupHCoords(dst.rows, horizLines, 'h');
+  // horizLines = [];
+  // groupedCoordsList.forEach(g => {
+
+  //   const line = this.drawLine(g, dst, 'h');
+  //   if (line) { horizLines.push(line) };
+  //   // horizLines.push(this.drawLine(g, dst, 'h'));
+
+  // });
+  // groupedCoordsList = this.groupHCoords(dst.cols, vertLines, 'v');
+  // vertLines = [];
+  // groupedCoordsList.forEach(g => {
+  //   const line = this.drawLine(g, dst, 'v');
+  //     if (line) { vertLines.push(line) };
+  //   // vertLines.push(this.drawLine(g, dst, 'v'));
+  // });
+  // this.showCorners(dst, horizLines, vertLines, 20);
+  // cv.imshow('canvasTest', dst);
+  // src.delete(); dst.delete(); lines.delete();
+
+  // console.log(Date.now() - startTime)
 
 
 
-      cv.imshow('canvasTest1', dst);
+getHoughLinesP(src: any, dst: any) {
+  let lines = new cv.Mat();
+  cv.HoughLinesP(src, lines, 2, Math.PI / 90, 200, 50, 1);
+
+  console.log(`HoughlinesP rows ${lines.rows}`);
+
+  let horizLines: Line[] = [];
+  let vertLines: Line[] = [];
+  for (let i = 0; i < lines.rows; ++i) {
+
+
+    let dx = lines.data32S[i * 4] - lines.data32S[i * 4 + 2];
+    let dy = lines.data32S[i * 4 + 1] - lines.data32S[i * 4 + 3];
+    let slope = Math.abs(dx / dy);
+    let vert = Math.abs(Math.tan((Math.PI / 180) * 10));
+    let horiz = Math.abs(Math.tan((Math.PI / 180) * 80));
+    let startPoint = new cv.Point(lines.data32S[i * 4], lines.data32S[i * 4 + 1]);
+    let endPoint = new cv.Point(lines.data32S[i * 4 + 2], lines.data32S[i * 4 + 3]);
+    let row1 = lines.data32S[i * 4 + 1];
+    let row2 = lines.data32S[i * 4 + 3];
+    let col1 = lines.data32S[i * 4];
+    let col2 = lines.data32S[i * 4 + 2];
+
+
+    if (slope < vert) {
+      let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
+        new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
+      const p1 = new cv.Point(l.p1.col, l.p1.row);
+      const p2 = new cv.Point(l.p2.col, l.p2.row);
+
+      cv.line(dst, p1, p2, [0, 255, 0, 255], 1);
+      vertLines.push(l);
 
     }
+    if (slope > horiz) {
 
-    // ********************************************************************
-    // const sensitivity = 8;
+      let l: Line = new Line(new Coord(lines.data32S[i * 4 + 1], lines.data32S[i * 4]),
+        new Coord(lines.data32S[i * 4 + 3], lines.data32S[i * 4 + 2]));
+      const p1 = new cv.Point(l.p1.col, l.p1.row);
+      const p2 = new cv.Point(l.p2.col, l.p2.row);
 
+      cv.line(dst, p1, p2, [0, 0, 255, 255], 1);
+      horizLines.push(l);
 
-    // vertLines.forEach(vL => {
-    //   this.findCornerAt(vertLines, horizLines, vL.p1, 8);
-    //   this.findCornerAt(vertLines, horizLines, vL.p2, 8);
-    // });
-
-  
-    // cv.imshow('canvasTest1', src);
-    // // this.detectCorners(src, dst, 40, 2, 10);
-    // // this.showContours(src, dst);
-    // let groupedCoordsList: Coord[][] = this.groupHCoords(dst.rows, horizLines, 'h');
-    // horizLines = [];
-    // groupedCoordsList.forEach(g => {
-      
-    //   const line = this.drawLine(g, dst, 'h');
-    //   if (line) { horizLines.push(line) };
-    //   // horizLines.push(this.drawLine(g, dst, 'h'));
-
-    // });
-    // groupedCoordsList = this.groupHCoords(dst.cols, vertLines, 'v');
-    // vertLines = [];
-    // groupedCoordsList.forEach(g => {
-    //   const line = this.drawLine(g, dst, 'v');
-    //     if (line) { vertLines.push(line) };
-    //   // vertLines.push(this.drawLine(g, dst, 'v'));
-    // });
-    // this.showCorners(dst, horizLines, vertLines, 20);
-    // cv.imshow('canvasTest', dst);
-    // src.delete(); dst.delete(); lines.delete();
-
-    // console.log(Date.now() - startTime)
-
+    }
   }
+}
 
   findCornerAt(vertLines: Line[], horizLines: Line[], thisCoord: Coord, sensitivity: number) {
     let color1 = new cv.Scalar(255, 255, 0, 255);
@@ -212,7 +229,7 @@ export class CvService {
         //   c2 = new Coord(yMax, m * yMax + c);
         //   cv.line(dst, p1, p2, [0, 255, 0, 255], 1);
         vertLines.push(l);
-        
+
 
       }
       if (slope > horiz) {
@@ -228,27 +245,27 @@ export class CvService {
     }
     cv.imshow('canvasTest1', lines);
   }
-    prepareImage() {
-      let src = cv.imread('canvasInput');
-      let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
-      
-      let color = new cv.Scalar(255, 0, 0, 255);
-      let color1 = new cv.Scalar(255, 255, 0, 255);
-      let anchor = new cv.Point(-1, -1);
-      let M = cv.Mat.ones(3, 3, cv.CV_8U);
-      let startTime = Date.now();
-      cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
-      cv.Canny(src, src, 50, 200, 3);
-      cv.dilate(src, src, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
-      cv.imshow('canvasTest1', src);
-    }
+  prepareImage() {
+    let src = cv.imread('canvasInput');
+    let dst = cv.Mat.zeros(src.rows, src.cols, cv.CV_8UC3);
+
+    let color = new cv.Scalar(255, 0, 0, 255);
+    let color1 = new cv.Scalar(255, 255, 0, 255);
+    let anchor = new cv.Point(-1, -1);
+    let M = cv.Mat.ones(3, 3, cv.CV_8U);
+    let startTime = Date.now();
+    cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+    cv.Canny(src, src, 50, 200, 3);
+    cv.dilate(src, src, M, anchor, 1, cv.BORDER_CONSTANT, cv.morphologyDefaultBorderValue());
+    cv.imshow('canvasTest1', src);
+  }
 
 
   private isReady = new BehaviorSubject<OpenCVLoadResult>({
-      ready: false,
-      error: false,
-      loading: true
-    });
+    ready: false,
+    error: false,
+    loading: true
+  });
 
 
 
@@ -276,13 +293,16 @@ export class CvService {
       error: false,
       loading: true
     });
-
+    console.log('Starting loadOpenCv()');
+    
     // window['Module'] = { ...options };
     const script = document.createElement('script');
     script.setAttribute('async', '');
     script.setAttribute('type', 'text/javascript');
     script.addEventListener('load', () => {
       console.log("Load event");
+      console.log('OpenCv loaded');
+      
       this.isReady.next({
         ready: true,
         error: false,
@@ -320,7 +340,7 @@ export class CvService {
       return scriptDirectory + path;
     }
   }
-  loadImageToHTMLCanvas(imageUrl: string, canvas: HTMLCanvasElement): Observable<any> {
+  loadImageToHTMLCanvas(imageUrl: string, canvas: HTMLCanvasElement): Observable < any > {
     return new Observable(observer => {
       const ctx = canvas.getContext('2d')!;
       const img = new Image(300, 300);
@@ -339,7 +359,7 @@ export class CvService {
     });
   }
 
-  
+
 
   printError(err: any) {
     if (typeof err === 'undefined') {
@@ -425,8 +445,8 @@ export class CvService {
     let yMax = g[0].row;
     let p1: any;
     let p2: any;
-    let c1 = new Coord(0,0);
-    let c2 = new  Coord(0,0);
+    let c1 = new Coord(0, 0);
+    let c2 = new Coord(0, 0);
     if (dir == 'h') {
       g.forEach(c => {
         sX = sX + c.col;

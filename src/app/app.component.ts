@@ -22,7 +22,7 @@ export class AppComponent implements AfterViewInit, OnInit {
   }
 
 
-
+  test2 = (imageUrl: string, canvas: HTMLCanvasElement) => { };
   showGrid = false;
   ocrResult: any;
   title = 'grid-detector';
@@ -39,7 +39,13 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 
   ngAfterViewInit(): void {
-    this.loadImageToHTMLCanvas(this.imageUrl, this.canvasInput.nativeElement)
+    console.log('ngAfterViewInit() starting');
+    this.cvService.isReady$.subscribe((r) => {
+      if(r.ready) {
+        this.loadImageToHTMLCanvas(this.imageUrl, this.canvasInput.nativeElement)
+      }
+    });
+    
 
   }
 
@@ -56,39 +62,117 @@ export class AppComponent implements AfterViewInit, OnInit {
     if (event.target.files.length) {
       this.showGrid = false;
       const reader = new FileReader();
-      const load$ = fromEvent(reader, 'load');
-      let cv1 = cv;
+      reader.addEventListener(
+        "load",
+        () => {
+           let img = new Image();
+           const src = reader.result;
+           if(typeof src === 'string') {img.src = src};
+           
+           img.onload = () => {
+              const canvas = document.getElementById("canvasInput") as HTMLCanvasElement;
+              const ctx = canvas.getContext("2d");
+              
+              
+              if (ctx) {
+                ctx.canvas.width = img.width;
+                ctx.canvas.height = img.height;
+                ctx.drawImage(img, 0, 0)};
+                let tmp = cv.imread('canvasInput');
 
-      load$
-        .pipe(
+                // const size = new cv.Size(300, img.height * 300 / img.width);
+                // cv.resize(tmp, tmp, size,0,0, cv.INTER_AREA);
+                // cv.imshow('canvasInput', tmp);
+                // tmp.delete();
+     
+           };
+        },
+        false
+     );
+      // const load$ = fromEvent(reader, 'load');
+      // reader.onload = () => {
+      //   let txt = `${reader.result}`;
+      //       console.log(txt);
+      //   const canvas = document.getElementById('canvasInput') as HTMLCanvasElement;
+      //   const ctx = canvas.getContext('2d')!;
+      //   let mat = cv.matFromImageData(txt);
+      //   cv.imshow('canvasInput', mat);
+      //   // let img = new Image();
+      //   // img.crossOrigin = 'anonymous';
+      //   // ctx.roundRect(50, 50, 50, 50);
+      //   // img.onload = () => {
+      //   //   console.log(`Image load event width ${img.width}`);
+
+      //   //   canvas.width = img.width;
+      //   //   canvas.height = img.height;
+      //   //   const scale = 300 / img.width;
+      //   //   cv.resize(img, img, scale, cv.INTER_AREA);
+      //   //   ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      //   // };
+      //   //  img.src = event.target.files[0].name;
+      // }
+      
+      //       console.log(txt);
+
+      // load$
+      //   .pipe(
 
 
-          tap(() => {let txt = `${reader.result}`;
-          let img = new Image();
-          img.src = txt;
-          console.log(img.width);
-
-          return this.loadImageToHTMLCanvas(txt, this.canvasInput.nativeElement);
-
-
-          })
-
-        )
-        .subscribe({
-          next: () => {
+      //     tap(() => {
+      //       let txt = `${reader.result}`;
+      //       console.log(txt);
             
-          },
-          error: err => {
-            console.log('Error loading image', err);
-          },
-          complete: () => { }
-        }
+      //       // let img = new Image();
+      //       // img.src = txt;
+      //       // console.log(img.width);
+
+      //       // return this.loadImageToHTMLCanvas(txt, this.canvasInput.nativeElement);
 
 
-        );
+      //     })
+
+      //   )
+      //   .subscribe({
+      //     next: () => { () => {
+      //       const canvas = document.getElementById('canvasInput') as HTMLCanvasElement;
+      //         const ctx = canvas.getContext('2d')!;
+      //         let img = new Image();
+      //         img.crossOrigin = 'anonymous';
+      //         ctx.roundRect(50, 50, 50, 50);
+      //         img.onload = () => {
+      //           console.log(`Image load event width ${img.width}`);
+
+      //           canvas.width = img.width;
+      //           canvas.height = img.height;
+      //           const scale = 300 / img.width;
+      //           cv.resize(img, img, scale, cv.INTER_AREA);
+      //           ctx.drawImage(img, 0, 0, img.width, img.height);
+
+      //         };
+
+      //         img.onerror = (e) => {
+      //           console.log('error!' + e);
+      //         };
+      //         // img.src = reader.readAsDataURL(event.target.files[0]);
+      //         // if (typeof reader.result === 'string'){img.src = reader.result} ;
+      //       }
+      //       // if (typeof reader.result === 'string') {
+      //       //   return this.loadImageToHTMLCanvas(reader.result, this.canvasInput.nativeElement);
+      //       // };
+
+      //     },
+      //     error: err => {
+      //       console.log('Error loading image', err);
+      //     },
+      //     complete: () => { }
+      //   }
+
+
+      //   );
 
       this.ocrResult = 'Loading file';
-      reader.readAsDataURL(event.target.files[0]);
+      let imgData = reader.readAsDataURL(event.target.files[0]);
 
 
 
@@ -101,12 +185,18 @@ export class AppComponent implements AfterViewInit, OnInit {
     img.crossOrigin = 'anonymous';
     ctx.roundRect(50, 50, 50, 50);
     img.onload = () => {
-      console.log('Image load event');
+      console.log(`Image load event width ${img.width}`);
 
       canvas.width = img.width;
       canvas.height = img.height;
+      const scale = 300 / img.width;
+      
+      
       ctx.drawImage(img, 0, 0, img.width, img.height);
-
+      let src = cv.imread('canvasInput');
+      let size = new cv.Size(300, 400);
+      cv.resize(src, src, size,0,0,cv.INTER_AREA);
+      cv.imshow('canvasInput', src);
     };
 
     img.onerror = (e) => {
